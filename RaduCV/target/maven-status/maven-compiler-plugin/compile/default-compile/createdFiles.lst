@@ -1,0 +1,11 @@
+exception\TooManyProductsException.class
+org\example\Main.class
+model\Product.class
+model\ProductType.class
+model\AlcoholicBeverage.class
+org\example\UserManager.class
+exception\UserAlreadyExistException.class
+model\FoodProduct.class
+service\Store.class
+exception\InexistentProductException.class
+model\User.class
