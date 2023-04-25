@@ -2,7 +2,6 @@ package org.example;
 
 import exception.InexistentProductException;
 import model.*;
-import service.Cart;
 import service.DBConnector;
 import service.Store;
 
@@ -74,8 +73,8 @@ public class Main {
                         default -> System.out.println("Invalid option!");
                     }
                 }
+                displayAfterLoginMenu();
                 while (UserManager.getAuthenticatedUser() != null) {
-                    displayAfterLoginMenu();
                     userManager.printUserIfAuthenticated();
                     System.out.println("Enter option: ");
                     int choice = input.nextInt();
@@ -83,7 +82,7 @@ public class Main {
                         case 0 -> displayAfterLoginMenu();
                         case 1 -> addProductToCart(input);
                         case 2 -> displayProductsFromCart();
-//                    case 3 ->; afiseaza pret total
+                        case 3 -> calculateTotalPrice();
                         case 4 -> displayProducts();
                         case 5 -> Checkout(input);
                         case 6 -> userManager.logout();
@@ -223,13 +222,13 @@ public class Main {
 
     private static void displayAfterLoginMenu() {
         UserManager.printWelcomeMessageIfAuthenticated();
+        System.out.println("0.Display the command menu agan.");
         System.out.println("1.Add a product from store to your shopping cart.");
-        System.out.println("2.Remove a prodct from your shopping cart.");
-        System.out.println("3.Display the products that are available in the store.");
-        System.out.println("4.Display the total price of your shopping cart.");
-        System.out.println("5.Display the products available in the store.");
-        System.out.println("6.Checkout.");
-        System.out.println("7. Logout.");
+        System.out.println("2.Display current items from shopping cart");
+        System.out.println("3.Display the total price of your shopping cart.");
+        System.out.println("4.Display the products that are available in the store.");
+        System.out.println("5.Checkout.");
+        System.out.println("6. Logout.");
     }
 
     private static void addProductStore(Scanner input) throws SQLException {
@@ -372,12 +371,14 @@ public class Main {
 
 
     }
-    private static List<Product> addProductToCart(Scanner input) throws SQLException {
+    private static void addProductToCart(Scanner input) throws SQLException {
+
         System.out.println("Enter the name of the item you want to add to your cart");
          connection = DriverManager.getConnection(JDBC_URL, USER, PASSWORD);
          String sql = "SELECT * FROM products WHERE Name = ? AND ((AlcoholPercentage > 0 AND Kcal = 0) OR (AlcoholPercentage = 0 AND Kcal > 0))";
          input.nextLine();
-         String productName = input.next();
+         String productName = input.nextLine();
+
 
          pStatement = connection.prepareStatement(sql);
          pStatement.setString(1, productName);
@@ -387,25 +388,40 @@ public class Main {
          while(resultSet.next()){
              int id = resultSet.getInt("ID");
              productName = resultSet.getString("Name");
-             double price = resultSet.getDouble("Price");
-             int quantity = resultSet.getInt("Quantity");
+             System.out.println("Enter the quantity of products you want to add to the cart:          (Max quantity is: " + resultSet.getInt("Quantity") + ")");
+             int quantity = input.nextInt();
+             double price = (resultSet.getDouble("Price") * quantity);
              double alcoholpercentage = resultSet.getDouble("AlcoholPercentage");
              int kcal = resultSet.getInt("Kcal");
 
-             if(alcoholpercentage != 0){
-                 cartList.add(new AlcoholicBeverage(id, productName, price, quantity, alcoholpercentage));
+             if(alcoholpercentage != 0 && quantity < resultSet.getInt("Quantity")){
+                 AlcoholicBeverage alcoholicBeverage = new AlcoholicBeverage(id, productName, price, quantity, alcoholpercentage);
+                 cartList.add(alcoholicBeverage);
+             }else if(quantity < resultSet.getInt("Quantity")){
+                 FoodProduct foodProduct = new FoodProduct(id, productName, price, quantity, kcal);
+                 cartList.add(foodProduct);
              }else{
-                 cartList.add(new FoodProduct(id, productName, price, quantity, kcal));
+                 System.out.println("Invalid quantity");
              }
 
              System.out.println("You addeed to your cart: " + productName + " product!");
          }
-         return cartList;
     }
 
     private static void displayProductsFromCart(){
+        System.out.println("In the shopping cart you have the following items: ");
         for (Product product : cartList){
-            System.out.println(product.getName() + " - $" + product.getPrice());
+//            System.out.println("In the shopping cart you have the following items: ");
+            System.out.println(product.getName() + " - $" + product.getPrice() + " - Quantity: " + product.getQuantity());
         }
+    }
+
+    public static double calculateTotalPrice(){
+        double totalPrice = 0;
+        for (Product product : cartList){
+            totalPrice += product.getPrice();
+        }
+        System.out.println("The total price of your items is: " + totalPrice);
+        return totalPrice;
     }
 }

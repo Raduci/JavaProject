@@ -49,7 +49,10 @@ public class FoodProduct extends Product {
     }
 
     public FoodProduct(int id, String name, double price, int quantity, int kcal) {
-        super(id, name, price, quantity);
-        this.kcal = kcal;
+        this.setPrice(price);
+        this.setID(id);
+        this.setName(name);
+        this.setQuantity(quantity);
+        this.setKcal(kcal);
     }
 }

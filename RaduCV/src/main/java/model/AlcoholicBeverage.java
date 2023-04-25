@@ -34,7 +34,12 @@ public class AlcoholicBeverage extends Product {
     }
 
     public AlcoholicBeverage(int id, String name, double price, int quantity, double alcoholPercentage) {
-        super(id, name, price, quantity);
-        this.alcoholPercentage = alcoholPercentage;
+        this.setPrice(price);
+        this.setID(id);
+        this.setName(name);
+        this.setQuantity(quantity);
+        this.setAlcoholPercentage(alcoholPercentage);
+
+
     }
 }
